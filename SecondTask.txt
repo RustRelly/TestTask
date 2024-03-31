@@ -1,0 +1,40 @@
+1. Измененные запросы для создания таблиц
+
+Для ускорения запросов, которые будут производиться для данных из этих таблиц, поменяем движок
+таблиц и установим внешние ключи для таблиц. Также сменим кодировку дыннх на utf8.
+
+CREATE TABLE `info` (
+    `id` INT(11) NOT NULL auto_increment,
+    `name` VARCHAR(255) DEFAULT NULL,
+    `desc` TEXT DEFAULT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `data` (
+    `id` INT(11) NOT NULL auto_increment,
+    `date` DATE DEFAULT NULL,
+    `value` INT(11) DEFAULT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `link` (
+    `data_id` INT(11) NOT NULL,
+    `info_id` INT(11) NOT NULL,
+    FOREIGN KEY `data_id` REFERENCES `data`(`id`),
+    FOREIGN KEY `info_id` REFERENCES `info`(`id`),
+    PRIMARY KEY (`data_id`, `info_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+2. Измененный запрос для вычленения данных
+
+WHERE заменим на LEFT JOIN, уберем из выборки ненужные поля с повторяющимся
+именем (`id`). В результате этого запроса произойдет выборка всех данных из таблицы
+link. В том случае, если в таблицах data и info найдутся такие info_id или data_id, как в таблице
+link, то эти данные попадут в результирующую выборку. В противном случае поля для выборки
+будут заполнены значениями NULL
+
+SELECT l.*, d.date, d.value, i.name, i.desc
+FROM `link` as l
+LEFT JOIN `data` as d ON d.id = l.data_id
+LEFT JOIN `info` as i ON i.id = l.info_id;
+
